@@ -1,0 +1,28 @@
+{
+	"name": "electron-touch-bar-stock-ticker",
+	"productName": "Electron Touch Bar Stock Ticker",
+	"version": "0.0.0",
+	"description": "Electron stock ticker app for the MacBook Pro touch bar",
+	"keywords": [
+		"electron"
+	],
+	"homepage": "https://github.com/tom-weatherhead/electron-touch-bar-stock-ticker",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tom-weatherhead/electron-touch-bar-stock-ticker.git"
+	},
+	"bugs": {
+		"url": "https://github.com/tom-weatherhead/electron-touch-bar-stock-ticker/issues"
+	},
+	"main": "./main.js",
+	"scripts": {
+		"start": "electron ."
+	},
+	"dependencies": {
+		"electron": "^22.0.0",
+		"thaw-data-sources": "^0.0.2",
+		"thaw-http-json-client-node": "^0.0.2"
+	},
+	"author": "Tom Weatherhead <tom_weatherhead@hotmail.com> (https://github.com/tom-weatherhead)",
+	"license": "MIT"
+}
