@@ -6,7 +6,7 @@ const path = require('path');
 
 const { app, BrowserWindow, nativeImage, TouchBar } = require('electron');
 
-const { TouchBarLabel, TouchBarButton, TouchBarSpacer } = TouchBar;
+const { TouchBarButton, TouchBarLabel, TouchBarSpacer } = TouchBar;
 
 const { createYahooFinanceDetailsScraper } = require('thaw-data-sources');
 const { createHttpClient } = require('thaw-http-json-client-node');
@@ -108,6 +108,11 @@ const touchBarEscapeItem = new TouchBarButton({
 });
 // END From https://stackoverflow.com/questions/48922997/touchbar-icon-with-custom-image-doesnt-load-in-electron
 
+const quoteInfoLabel = new TouchBarLabel({
+	label: `${symbol} : ?`,
+	textColor: '#FDFF00'
+});
+
 const touchBar = new TouchBar({
 	items: [
 		spin,
@@ -118,7 +123,9 @@ const touchBar = new TouchBar({
 		new TouchBarSpacer({ size: 'small' }),
 		reel3,
 		new TouchBarSpacer({ size: 'large' }),
-		result
+		result,
+		new TouchBarSpacer({ size: 'large' }),
+		quoteInfoLabel
 	],
 	escapeItem: touchBarEscapeItem
 });
@@ -153,4 +160,5 @@ app.whenReady().then(() => {
 	return getMarketQuote();
 }).then((price) => {
 	console.log(`The current price of ${symbol} is ${price}`);
+	quoteInfoLabel.label = `${symbol} : ${price}`;
 });
