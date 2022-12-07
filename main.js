@@ -11,7 +11,9 @@ const { app, BrowserWindow, nativeImage, net, TouchBar } = require('electron');
 const { TouchBarButton, TouchBarLabel, TouchBarSpacer } = TouchBar;
 
 const { createYahooFinanceDetailsScraper } = require('thaw-data-sources');
-const { createHttpClient } = require('thaw-http-json-client-node');
+// const { createHttpClient } = require('thaw-http-json-client-node');
+
+const refreshInterval = 60; // seconds
 
 const symbol = '^GSPC'; // The S&P 500 index
 
@@ -31,6 +33,7 @@ const spin = new TouchBarButton({
 	backgroundColor: '#7851A9',
 	click: () => {
 		// Ignore clicks if already spinning
+
 		if (spinning) {
 			return;
 		}
@@ -91,8 +94,6 @@ const finishSpin = () => {
 	spinning = false;
 };
 
-// BEGIN From https://stackoverflow.com/questions/48922997/touchbar-icon-with-custom-image-doesnt-load-in-electron
-// const {nativeImage} = require('electron');
 const touchBarEscapeItem = new TouchBarButton({
 	'backgroundColor': '#000000',
 	// 'icon': nativeImage.createFromPath(path.join(__dirname, 'build/18x18@2x.png')).resize({
@@ -106,7 +107,6 @@ const touchBarEscapeItem = new TouchBarButton({
 		app.quit();
 	}
 });
-// END From https://stackoverflow.com/questions/48922997/touchbar-icon-with-custom-image-doesnt-load-in-electron
 
 const quoteInfoLabel = new TouchBarLabel({
 	label: `${symbol} : ?`,
@@ -130,10 +130,6 @@ const touchBar = new TouchBar({
 	escapeItem: touchBarEscapeItem
 });
 
-// export interface IHttpClient {
-// 	get(url: string): Observable<string>;
-// }
-
 function createElectronHttpRequest(url) {
 	return new Promise((resolve, reject) => {
 		// const request = net.request({
@@ -143,9 +139,14 @@ function createElectronHttpRequest(url) {
 		// 	port: 443,
 		// 	path: '/'
 		// });
+
+		// typeof request is ClientRequest
+		// See https://www.electronjs.org/docs/latest/api/client-request
 		const request = net.request(url);
 
 		request.on('response', (response) => {
+			// typeof response is IncomingMessage
+			// See https://www.electronjs.org/docs/latest/api/incoming-message
 			console.log('response:', response);
 			console.log(`STATUS: ${response.statusCode}`);
 
@@ -167,8 +168,6 @@ function createElectronHttpRequest(url) {
 				console.log('Http response event: end');
 				resolve(rawData);
 			});
-
-			// resolve(response);
 		});
 
 		request.on('error', (error) => {
@@ -176,13 +175,13 @@ function createElectronHttpRequest(url) {
 			reject(error);
 		});
 
-		request.on('finish', () => {
-			console.log('Http request event: finish');
-		});
-
-		request.on('close', () => {
-			console.log('Http request event: close');
-		});
+		// request.on('finish', () => {
+		// 	console.log('Http request event: finish');
+		// });
+		//
+		// request.on('close', () => {
+		// 	console.log('Http request event: close');
+		// });
 
 		console.log('Calling Http request.end()...');
 		request.end();
@@ -190,13 +189,21 @@ function createElectronHttpRequest(url) {
 }
 
 function createElectronHttpClient() {
+	// The returned object implements the IHttpClient interface
+
+	// export interface IHttpClient {
+	// 	get(url: string): Observable<string>;
+	// }
+
 	return {
 		get: (url) => from(createElectronHttpRequest(url))
 	};
 }
 
-// const scraper = createYahooFinanceDetailsScraper(createHttpClient());
-const scraper = createYahooFinanceDetailsScraper(createElectronHttpClient());
+const scraper = createYahooFinanceDetailsScraper(
+	// createHttpClient()
+	createElectronHttpClient()
+);
 
 async function getMarketQuote(){
 	const result = await scraper.getData({ symbol }).toPromise();
@@ -208,6 +215,28 @@ async function getMarketQuote(){
 	}
 
 	return result.price.regularMarketPrice.raw;
+}
+
+function getLocalHhMmSs() {
+	const date = new Date();
+
+	const hh = ('0' + date.getHours()).slice(-2);
+	const mm = ('0' + date.getMinutes()).slice(-2);
+	const ss = ('0' + date.getSeconds()).slice(-2);
+
+	return `${hh}:${mm}:${ss}`;
+}
+
+function getAndDisplayMarketPrice() {
+	const startTime = new Date();
+
+	getMarketQuote().then((price) => {
+		console.log(`The current price of ${symbol} is ${price}`);
+		quoteInfoLabel.label = `${getLocalHhMmSs()} : ${symbol} = ${price}`;
+		setTimeout(getAndDisplayMarketPrice, refreshInterval * 1000 + (startTime - new Date()));
+	}).catch((error) => {
+		console.error('getMarketQuote error:', error);
+	});
 }
 
 let window;
@@ -224,15 +253,10 @@ app.whenReady().then(() => {
 	});
 	window.loadURL('about:blank');
 	window.setTouchBar(touchBar);
+	getAndDisplayMarketPrice();
 
-	return getMarketQuote();
-	// return createElectronHttpRequest('https://github.com/');
-}).then((price) => {
-	console.log(`The current price of ${symbol} is ${price}`);
-	quoteInfoLabel.label = `${symbol} : ${price}`;
+// 	return getMarketQuote();
+// }).then((price) => {
+// 	console.log(`The current price of ${symbol} is ${price}`);
+// 	quoteInfoLabel.label = `${getLocalHhMmSs()} : ${symbol} = ${price}`;
 });
-// }).then((str) => {
-// 	// console.log('ElectronHttpRequest response:');
-// 	// console.log(str);
-// 	console.log('Done.');
-// });

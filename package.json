@@ -20,8 +20,8 @@
 	},
 	"dependencies": {
 		"electron": "^22.0.0",
-		"thaw-data-sources": "^0.0.2",
-		"thaw-http-json-client-node": "^0.0.2"
+		"rxjs": "^7.6.0",
+		"thaw-data-sources": "^0.0.2"
 	},
 	"author": "Tom Weatherhead <tom_weatherhead@hotmail.com> (https://github.com/tom-weatherhead)",
 	"license": "MIT"
