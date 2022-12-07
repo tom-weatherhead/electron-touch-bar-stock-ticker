@@ -4,14 +4,14 @@
 
 const path = require('path');
 
-const { app, BrowserWindow, nativeImage, TouchBar } = require('electron');
+const { from } =  require('rxjs');
+
+const { app, BrowserWindow, nativeImage, net, TouchBar } = require('electron');
 
 const { TouchBarButton, TouchBarLabel, TouchBarSpacer } = TouchBar;
 
 const { createYahooFinanceDetailsScraper } = require('thaw-data-sources');
 const { createHttpClient } = require('thaw-http-json-client-node');
-
-const scraper = createYahooFinanceDetailsScraper(createHttpClient());
 
 const symbol = '^GSPC'; // The S&P 500 index
 
@@ -130,6 +130,74 @@ const touchBar = new TouchBar({
 	escapeItem: touchBarEscapeItem
 });
 
+// export interface IHttpClient {
+// 	get(url: string): Observable<string>;
+// }
+
+function createElectronHttpRequest(url) {
+	return new Promise((resolve, reject) => {
+		// const request = net.request({
+		// 	method: 'GET',
+		// 	protocol: 'https:',
+		// 	hostname: 'github.com',
+		// 	port: 443,
+		// 	path: '/'
+		// });
+		const request = net.request(url);
+
+		request.on('response', (response) => {
+			console.log('response:', response);
+			console.log(`STATUS: ${response.statusCode}`);
+
+			response.on('error', (error) => {
+				console.log(`Response error: ${JSON.stringify(error)}`);
+				reject(error);
+			});
+
+			response.setEncoding('utf8');
+
+			let rawData = '';
+
+			response.on('data', (chunk) => {
+				console.log('Http response event: data');
+				rawData += chunk;
+			});
+
+			response.on('end', () => {
+				console.log('Http response event: end');
+				resolve(rawData);
+			});
+
+			// resolve(response);
+		});
+
+		request.on('error', (error) => {
+			console.log(`Request error: ${JSON.stringify(error)}`);
+			reject(error);
+		});
+
+		request.on('finish', () => {
+			console.log('Http request event: finish');
+		});
+
+		request.on('close', () => {
+			console.log('Http request event: close');
+		});
+
+		console.log('Calling Http request.end()...');
+		request.end();
+	});
+}
+
+function createElectronHttpClient() {
+	return {
+		get: (url) => from(createElectronHttpRequest(url))
+	};
+}
+
+// const scraper = createYahooFinanceDetailsScraper(createHttpClient());
+const scraper = createYahooFinanceDetailsScraper(createElectronHttpClient());
+
 async function getMarketQuote(){
 	const result = await scraper.getData({ symbol }).toPromise();
 
@@ -158,7 +226,13 @@ app.whenReady().then(() => {
 	window.setTouchBar(touchBar);
 
 	return getMarketQuote();
+	// return createElectronHttpRequest('https://github.com/');
 }).then((price) => {
 	console.log(`The current price of ${symbol} is ${price}`);
 	quoteInfoLabel.label = `${symbol} : ${price}`;
 });
+// }).then((str) => {
+// 	// console.log('ElectronHttpRequest response:');
+// 	// console.log(str);
+// 	console.log('Done.');
+// });
