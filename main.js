@@ -109,7 +109,7 @@ const touchBarEscapeItem = new TouchBarButton({
 });
 
 const quoteInfoLabel = new TouchBarLabel({
-	label: `${symbol} : ?`,
+	label: `??:??:?? : ${symbol} = ?`,
 	textColor: '#FDFF00'
 });
 
@@ -147,8 +147,8 @@ function createElectronHttpRequest(url) {
 		request.on('response', (response) => {
 			// typeof response is IncomingMessage
 			// See https://www.electronjs.org/docs/latest/api/incoming-message
-			console.log('response:', response);
-			console.log(`STATUS: ${response.statusCode}`);
+			// console.log('response:', response);
+			console.log(`HTTP GET response: ${response.statusCode} ${response.statusMessage}`);
 
 			response.on('error', (error) => {
 				console.log(`Response error: ${JSON.stringify(error)}`);
@@ -160,12 +160,12 @@ function createElectronHttpRequest(url) {
 			let rawData = '';
 
 			response.on('data', (chunk) => {
-				console.log('Http response event: data');
+				// console.log('Http response event: data');
 				rawData += chunk;
 			});
 
 			response.on('end', () => {
-				console.log('Http response event: end');
+				// console.log('Http response event: end');
 				resolve(rawData);
 			});
 		});
@@ -232,8 +232,24 @@ function getAndDisplayMarketPrice() {
 
 	getMarketQuote().then((price) => {
 		console.log(`The current price of ${symbol} is ${price}`);
-		quoteInfoLabel.label = `${getLocalHhMmSs()} : ${symbol} = ${price}`;
-		setTimeout(getAndDisplayMarketPrice, refreshInterval * 1000 + (startTime - new Date()));
+
+		const hhmmss = getLocalHhMmSs();
+		let timeoutMs = refreshInterval * 1000 + (startTime - new Date());
+		let fn = () => {
+			;
+			quoteInfoLabel.label = `${hhmmss} : ${symbol} = ${price} (next in ${Math.floor(timeoutMs / 1000)}s)`;
+
+			if (timeoutMs < 2000) {
+				setTimeout(getAndDisplayMarketPrice, timeoutMs);
+			} else {
+				timeoutMs -= 1000;
+				setTimeout(fn, 1000);
+			}
+		};
+
+		fn();
+		// quoteInfoLabel.label = `${hhmmss} : ${symbol} = ${price}`;
+		// setTimeout(getAndDisplayMarketPrice, timeout);
 	}).catch((error) => {
 		console.error('getMarketQuote error:', error);
 	});
@@ -254,9 +270,4 @@ app.whenReady().then(() => {
 	window.loadURL('about:blank');
 	window.setTouchBar(touchBar);
 	getAndDisplayMarketPrice();
-
-// 	return getMarketQuote();
-// }).then((price) => {
-// 	console.log(`The current price of ${symbol} is ${price}`);
-// 	quoteInfoLabel.label = `${getLocalHhMmSs()} : ${symbol} = ${price}`;
 });
