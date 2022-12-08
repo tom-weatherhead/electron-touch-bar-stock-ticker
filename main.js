@@ -148,7 +148,7 @@ function createElectronHttpRequest(url) {
 			// typeof response is IncomingMessage
 			// See https://www.electronjs.org/docs/latest/api/incoming-message
 			// console.log('response:', response);
-			console.log(`HTTP GET response: ${response.statusCode} ${(response.statusCode === 200) ? 'OK' : response.statusMessage}`);
+			console.log(`HTTP/${response.httpVersionMajor}.${response.httpVersionMinor} GET response: ${response.statusCode} ${(response.statusCode === 200) ? 'OK' : response.statusMessage}`);
 
 			response.on('error', (error) => {
 				console.log(`Response error: ${JSON.stringify(error)}`);
