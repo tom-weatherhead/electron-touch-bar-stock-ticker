@@ -8,7 +8,7 @@ const { from } =  require('rxjs');
 
 const { app, BrowserWindow, nativeImage, net, TouchBar } = require('electron');
 
-const { TouchBarButton, TouchBarLabel, TouchBarSpacer } = TouchBar;
+const { TouchBarButton, TouchBarLabel /* , TouchBarSpacer */ } = TouchBar;
 
 const { createYahooFinanceDetailsScraper } = require('thaw-data-sources');
 // const { createHttpClient } = require('thaw-http-json-client-node');
@@ -17,82 +17,82 @@ const refreshInterval = 60; // seconds
 
 const symbol = '^GSPC'; // The S&P 500 index
 
-let spinning = false;
-
-// Reel labels
-const reel1 = new TouchBarLabel();
-const reel2 = new TouchBarLabel();
-const reel3 = new TouchBarLabel();
-
-// Spin result label
-const result = new TouchBarLabel();
-
-// Spin button
-const spin = new TouchBarButton({
-	label: '🎰 Spin',
-	backgroundColor: '#7851A9',
-	click: () => {
-		// Ignore clicks if already spinning
-
-		if (spinning) {
-			return;
-		}
-
-		spinning = true;
-		result.label = '';
-
-		let timeout = 10;
-		const spinLength = 4 * 1000; // 4 seconds
-		const startTime = Date.now();
-
-		const spinReels = () => {
-			updateReels();
-
-			if (Date.now() - startTime >= spinLength) {
-				finishSpin();
-			} else {
-				// Slow down a bit on each spin
-				timeout *= 1.1;
-				setTimeout(spinReels, timeout);
-			}
-		};
-
-		spinReels();
-	}
-});
-
-const getRandomValue = () => {
-	// const values = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-	const values = ['🍒', '💎', '7️⃣', '🍊', '🔔', '⭐', '🍇', '🍀'];
-
-	return values[Math.floor(Math.random() * values.length)];
-};
-
-const updateReels = () => {
-	reel1.label = getRandomValue();
-	reel2.label = getRandomValue();
-	reel3.label = getRandomValue();
-};
-
-const finishSpin = () => {
-	const uniqueValues = new Set([reel1.label, reel2.label, reel3.label]).size;
-
-	if (uniqueValues === 1) {
-		// All 3 values are the same
-		result.label = '💰 Jackpot!!';
-		result.textColor = '#FDFF00';
-	} else if (uniqueValues === 2) {
-		// 2 values are the same
-		result.label = '😍 Winner!';
-		result.textColor = '#FDFF00';
-	} else {
-		// No values are the same
-		result.label = 'Spin Again';
-		result.textColor = null;
-	}
-
-	spinning = false;
-};
+// let spinning = false;
+//
+// // Reel labels
+// const reel1 = new TouchBarLabel();
+// const reel2 = new TouchBarLabel();
+// const reel3 = new TouchBarLabel();
+//
+// // Spin result label
+// const result = new TouchBarLabel();
+//
+// // Spin button
+// const spin = new TouchBarButton({
+// 	label: '🎰 Spin',
+// 	backgroundColor: '#7851A9',
+// 	click: () => {
+// 		// Ignore clicks if already spinning
+//
+// 		if (spinning) {
+// 			return;
+// 		}
+//
+// 		spinning = true;
+// 		result.label = '';
+//
+// 		let timeout = 10;
+// 		const spinLength = 4 * 1000; // 4 seconds
+// 		const startTime = Date.now();
+//
+// 		const spinReels = () => {
+// 			updateReels();
+//
+// 			if (Date.now() - startTime >= spinLength) {
+// 				finishSpin();
+// 			} else {
+// 				// Slow down a bit on each spin
+// 				timeout *= 1.1;
+// 				setTimeout(spinReels, timeout);
+// 			}
+// 		};
+//
+// 		spinReels();
+// 	}
+// });
+//
+// const getRandomValue = () => {
+// 	// const values = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+// 	const values = ['🍒', '💎', '7️⃣', '🍊', '🔔', '⭐', '🍇', '🍀'];
+//
+// 	return values[Math.floor(Math.random() * values.length)];
+// };
+//
+// const updateReels = () => {
+// 	reel1.label = getRandomValue();
+// 	reel2.label = getRandomValue();
+// 	reel3.label = getRandomValue();
+// };
+//
+// const finishSpin = () => {
+// 	const uniqueValues = new Set([reel1.label, reel2.label, reel3.label]).size;
+//
+// 	if (uniqueValues === 1) {
+// 		// All 3 values are the same
+// 		result.label = '💰 Jackpot!!';
+// 		result.textColor = '#FDFF00';
+// 	} else if (uniqueValues === 2) {
+// 		// 2 values are the same
+// 		result.label = '😍 Winner!';
+// 		result.textColor = '#FDFF00';
+// 	} else {
+// 		// No values are the same
+// 		result.label = 'Spin Again';
+// 		result.textColor = null;
+// 	}
+//
+// 	spinning = false;
+// };
 
 const touchBarEscapeItem = new TouchBarButton({
 	'backgroundColor': '#000000',
@@ -115,16 +115,16 @@ const quoteInfoLabel = new TouchBarLabel({
 
 const touchBar = new TouchBar({
 	items: [
-		spin,
-		new TouchBarSpacer({ size: 'large' }),
-		reel1,
-		new TouchBarSpacer({ size: 'small' }),
-		reel2,
-		new TouchBarSpacer({ size: 'small' }),
-		reel3,
-		new TouchBarSpacer({ size: 'large' }),
-		result,
-		new TouchBarSpacer({ size: 'large' }),
+		// spin,
+		// new TouchBarSpacer({ size: 'large' }),
+		// reel1,
+		// new TouchBarSpacer({ size: 'small' }),
+		// reel2,
+		// new TouchBarSpacer({ size: 'small' }),
+		// reel3,
+		// new TouchBarSpacer({ size: 'large' }),
+		// result,
+		// new TouchBarSpacer({ size: 'large' }),
 		quoteInfoLabel
 	],
 	escapeItem: touchBarEscapeItem
@@ -148,7 +148,7 @@ function createElectronHttpRequest(url) {
 			// typeof response is IncomingMessage
 			// See https://www.electronjs.org/docs/latest/api/incoming-message
 			// console.log('response:', response);
-			console.log(`HTTP GET response: ${response.statusCode} ${response.statusMessage}`);
+			console.log(`HTTP GET response: ${response.statusCode} ${(response.statusCode === 200) ? 'OK' : response.statusMessage}`);
 
 			response.on('error', (error) => {
 				console.log(`Response error: ${JSON.stringify(error)}`);
@@ -183,7 +183,7 @@ function createElectronHttpRequest(url) {
 		// 	console.log('Http request event: close');
 		// });
 
-		console.log('Calling Http request.end()...');
+		// console.log('Calling Http request.end()...');
 		request.end();
 	});
 }
@@ -239,7 +239,7 @@ function getAndDisplayMarketPrice() {
 			;
 			quoteInfoLabel.label = `${hhmmss} : ${symbol} = ${price} (next in ${Math.floor(timeoutMs / 1000)}s)`;
 
-			if (timeoutMs < 2000) {
+			if (timeoutMs < 1100) {
 				setTimeout(getAndDisplayMarketPrice, timeoutMs);
 			} else {
 				timeoutMs -= 1000;
