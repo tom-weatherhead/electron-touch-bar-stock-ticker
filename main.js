@@ -8,7 +8,7 @@ const path = require('path');
 
 const { app, BrowserWindow, nativeImage, net, TouchBar } = require('electron');
 
-const { TouchBarButton, TouchBarLabel /* , TouchBarSpacer */ } = TouchBar;
+const { TouchBarButton /* , TouchBarLabel, TouchBarSpacer */ } = TouchBar;
 
 // const { createYahooFinanceDetailsScraper } = require('thaw-data-sources');
 // const { createHttpClient } = require('thaw-http-json-client-node');
@@ -16,83 +16,6 @@ const { TouchBarButton, TouchBarLabel /* , TouchBarSpacer */ } = TouchBar;
 const refreshInterval = 60; // seconds
 
 const symbol = '^GSPC'; // The S&P 500 index
-
-// let spinning = false;
-//
-// // Reel labels
-// const reel1 = new TouchBarLabel();
-// const reel2 = new TouchBarLabel();
-// const reel3 = new TouchBarLabel();
-//
-// // Spin result label
-// const result = new TouchBarLabel();
-//
-// // Spin button
-// const spin = new TouchBarButton({
-// 	label: '🎰 Spin',
-// 	backgroundColor: '#7851A9',
-// 	click: () => {
-// 		// Ignore clicks if already spinning
-//
-// 		if (spinning) {
-// 			return;
-// 		}
-//
-// 		spinning = true;
-// 		result.label = '';
-//
-// 		let timeout = 10;
-// 		const spinLength = 4 * 1000; // 4 seconds
-// 		const startTime = Date.now();
-//
-// 		const spinReels = () => {
-// 			updateReels();
-//
-// 			if (Date.now() - startTime >= spinLength) {
-// 				finishSpin();
-// 			} else {
-// 				// Slow down a bit on each spin
-// 				timeout *= 1.1;
-// 				setTimeout(spinReels, timeout);
-// 			}
-// 		};
-//
-// 		spinReels();
-// 	}
-// });
-//
-// const getRandomValue = () => {
-// 	// const values = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-// 	const values = ['🍒', '💎', '7️⃣', '🍊', '🔔', '⭐', '🍇', '🍀'];
-//
-// 	return values[Math.floor(Math.random() * values.length)];
-// };
-//
-// const updateReels = () => {
-// 	reel1.label = getRandomValue();
-// 	reel2.label = getRandomValue();
-// 	reel3.label = getRandomValue();
-// };
-//
-// const finishSpin = () => {
-// 	const uniqueValues = new Set([reel1.label, reel2.label, reel3.label]).size;
-//
-// 	if (uniqueValues === 1) {
-// 		// All 3 values are the same
-// 		result.label = '💰 Jackpot!!';
-// 		result.textColor = '#FDFF00';
-// 	} else if (uniqueValues === 2) {
-// 		// 2 values are the same
-// 		result.label = '😍 Winner!';
-// 		result.textColor = '#FDFF00';
-// 	} else {
-// 		// No values are the same
-// 		result.label = 'Spin Again';
-// 		result.textColor = null;
-// 	}
-//
-// 	spinning = false;
-// };
 
 const touchBarEscapeItem = new TouchBarButton({
 	'backgroundColor': '#000000',
@@ -108,24 +31,16 @@ const touchBarEscapeItem = new TouchBarButton({
 	}
 });
 
-const quoteInfoLabel = new TouchBarLabel({
+const quoteInfoButton = new TouchBarButton({
 	label: `??:??:?? : ${symbol} = ?`,
-	textColor: '#FDFF00'
+	backgroundColor: '#808080'
 });
 
 const touchBar = new TouchBar({
 	items: [
-		// spin,
-		// new TouchBarSpacer({ size: 'large' }),
-		// reel1,
 		// new TouchBarSpacer({ size: 'small' }),
-		// reel2,
-		// new TouchBarSpacer({ size: 'small' }),
-		// reel3,
 		// new TouchBarSpacer({ size: 'large' }),
-		// result,
-		// new TouchBarSpacer({ size: 'large' }),
-		quoteInfoLabel
+		quoteInfoButton
 	],
 	escapeItem: touchBarEscapeItem
 });
@@ -191,34 +106,6 @@ function createElectronHttpRequest(url) {
 	});
 }
 
-// function createElectronHttpClient() {
-// 	// The returned object implements the IHttpClient interface
-//
-// 	// export interface IHttpClient {
-// 	// 	get(url: string): Observable<string>;
-// 	// }
-//
-// 	return {
-// 		get: (url) => from(createElectronHttpRequest(url))
-// 	};
-// }
-//
-// const scraper = createYahooFinanceDetailsScraper(
-// 	// createHttpClient()
-// 	createElectronHttpClient()
-// );
-//
-// async function getMarketQuote() {
-// 	const result = await scraper.getData({ symbol }).toPromise();
-//
-// 	if (typeof result === 'undefined') {
-// 		console.error('getMarketQuote() : Result from scraper is undefined.');
-//
-// 		return NaN;
-// 	}
-//
-// 	return result.price.regularMarketPrice.raw;
-// }
 function getMarketQuoteField(responseBodyAsString, dataField) {
 	const str1 = `data-field="${dataField}"`;
 	const index1 = responseBodyAsString.indexOf(str1);
@@ -261,33 +148,6 @@ async function getMarketQuote() {
 
 	const responseBodyAsString = await createElectronHttpRequest(url);
 
-	// const regex1 = /<fin-streamer([^>]*)>/; // data-field="regularMarketPrice"
-	// // See also data-field="regularMarketChange" and data-field="regularMarketChangePercent"
-	// const matches1 = responseBodyAsString.match(regex1);
-	//
-	// if (!matches1 || !matches1[1]) {
-	// 	console.error('Fsck. No regex1 match.');
-	//
-	// 	return undefined;
-	// }
-	//
-	// console.log('matches1[1] is', matches1[1]);
-	//
-	// const regex2 = /value="([^"]*)"/;
-	// const matches2 = matches1[1].match(regex2);
-	//
-	// if (!matches2 || !matches2[1]) {
-	// 	console.error('Fsck. No regex2 match.');
-	//
-	// 	return undefined;
-	// }
-	//
-	// console.log('matches2[1] is', matches2[1]);
-	//
-	// const value = parseFloat(matches2[1]);
-	//
-	// console.log('value is', typeof value, value);
-
 	const value = getMarketQuoteField(responseBodyAsString, 'regularMarketPrice');
 	const change = getMarketQuoteField(responseBodyAsString, 'regularMarketChange');
 	const changePercent = getMarketQuoteField(responseBodyAsString, 'regularMarketChangePercent');
@@ -314,14 +174,14 @@ function getAndDisplayMarketPrice() {
 		const hhmmss = getLocalHhMmSs();
 		let timeoutMs = refreshInterval * 1000 + (startTime - new Date());
 		let fn = () => {
-			quoteInfoLabel.label = `${hhmmss} : ${symbol} = ${data.value} ${data.change} ${data.changePercent}% (next in ${Math.floor(timeoutMs / 1000)}s)`;
+			quoteInfoButton.label = `${hhmmss} : ${symbol} = ${data.value} ${data.change} ${data.changePercent}% (next in ${Math.floor(timeoutMs / 1000)}s)`;
 
 			if (data.change > 0) {
-				quoteInfoLabel.backgroundColor = '#008000';
+				quoteInfoButton.backgroundColor = '#008000';
 			} else if (data.change < 0) {
-				quoteInfoLabel.backgroundColor = '#800000';
+				quoteInfoButton.backgroundColor = '#800000';
 			} else {
-				quoteInfoLabel.backgroundColor = '#808080';
+				quoteInfoButton.backgroundColor = '#808080';
 			}
 
 			if (timeoutMs < 1100) {
@@ -333,8 +193,6 @@ function getAndDisplayMarketPrice() {
 		};
 
 		fn();
-		// quoteInfoLabel.label = `${hhmmss} : ${symbol} = ${price}`;
-		// setTimeout(getAndDisplayMarketPrice, timeout);
 	}).catch((error) => {
 		console.error('getMarketQuote error:', error);
 	});
