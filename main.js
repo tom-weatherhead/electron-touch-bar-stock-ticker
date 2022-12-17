@@ -8,7 +8,7 @@ const path = require('path');
 
 const { app, BrowserWindow, nativeImage, net, TouchBar } = require('electron');
 
-const { TouchBarButton /* , TouchBarLabel, TouchBarSpacer */ } = TouchBar;
+const { TouchBarButton, TouchBarLabel, TouchBarSpacer } = TouchBar;
 
 // const { createYahooFinanceDetailsScraper } = require('thaw-data-sources');
 // const { createHttpClient } = require('thaw-http-json-client-node');
@@ -18,13 +18,13 @@ const refreshInterval = 60; // seconds
 const symbol = '^GSPC'; // The S&P 500 index
 
 const touchBarEscapeItem = new TouchBarButton({
-	'backgroundColor': '#000000',
+	backgroundColor: '#000000',
 	// 'icon': nativeImage.createFromPath(path.join(__dirname, 'build/18x18@2x.png')).resize({
 	// 	width: 16,
 	// 	height: 16
 	// }),
-	'icon': nativeImage.createFromPath(path.join(__dirname, 'favicon3.16x16.png')),
-	'iconPosition': 'center',
+	icon: nativeImage.createFromPath(path.join(__dirname, 'favicon3.16x16.png')),
+	iconPosition: 'center',
 	click: () => {
 		console.log('touchBarEscapeItem clicked');
 		app.quit();
@@ -36,11 +36,18 @@ const quoteInfoButton = new TouchBarButton({
 	backgroundColor: '#808080'
 });
 
+const updateCountdownLabel = new TouchBarLabel({
+	label: 'updateCountdownLabel',
+	// accessibilityLabel: 'accessibilityLabel',
+	textColor: '#ffffff'
+});
+
 const touchBar = new TouchBar({
 	items: [
-		// new TouchBarSpacer({ size: 'small' }),
+		quoteInfoButton,
+		new TouchBarSpacer({ size: 'small' }),
 		// new TouchBarSpacer({ size: 'large' }),
-		quoteInfoButton
+		updateCountdownLabel
 	],
 	escapeItem: touchBarEscapeItem
 });
@@ -107,6 +114,7 @@ function createElectronHttpRequest(url) {
 }
 
 function getMarketQuoteField(responseBodyAsString, dataField) {
+	// Yahoo-specific code
 	const str1 = `data-field="${dataField}"`;
 	const index1 = responseBodyAsString.indexOf(str1);
 
@@ -134,16 +142,17 @@ function getMarketQuoteField(responseBodyAsString, dataField) {
 		return undefined;
 	}
 
-	console.log('matches2[1] is', matches2[1]);
+	// console.log('matches2[1] is', matches2[1]);
 
 	const value = Math.round(100 * parseFloat(matches2[1])) / 100;
 
-	console.log(dataField, ': value is', typeof value, value);
+	// console.log(dataField, ': value is', typeof value, value);
 
 	return value;
 }
 
 async function getMarketQuote() {
+	// Yahoo-specific URL
 	const url = `https://finance.yahoo.com/quote/${symbol}`;
 
 	const responseBodyAsString = await createElectronHttpRequest(url);
@@ -160,26 +169,28 @@ function getLocalHhMmSs() {
 
 	const hh = ('0' + date.getHours()).slice(-2);
 	const mm = ('0' + date.getMinutes()).slice(-2);
-	const ss = ('0' + date.getSeconds()).slice(-2);
+	// const ss = ('0' + date.getSeconds()).slice(-2);
 
-	return `${hh}:${mm}:${ss}`;
+	// return `${hh}:${mm}:${ss}`;
+	return `${hh}:${mm}`;
 }
 
 function getAndDisplayMarketPrice() {
 	const startTime = new Date();
 
 	getMarketQuote().then((data) => {
-		console.log(`The current price of ${symbol} is ${data.value} ${data.change} ${data.changePercent}%`);
+		console.log(`The current price of ${symbol} is ${data.value} ${data.change} (${data.changePercent}%)`);
 
 		const hhmmss = getLocalHhMmSs();
 		let timeoutMs = refreshInterval * 1000 + (startTime - new Date());
 		let fn = () => {
-			quoteInfoButton.label = `${hhmmss} : ${symbol} = ${data.value} ${data.change} ${data.changePercent}% (next in ${Math.floor(timeoutMs / 1000)}s)`;
+			quoteInfoButton.label = `${hhmmss} : ${symbol} = ${data.value}  ${data.change}  (${data.changePercent}%)`;
+			updateCountdownLabel.label = `(next update in ${Math.floor(timeoutMs / 1000)}s)`;
 
 			if (data.change > 0) {
-				quoteInfoButton.backgroundColor = '#008000';
+				quoteInfoButton.backgroundColor = '#00c000';
 			} else if (data.change < 0) {
-				quoteInfoButton.backgroundColor = '#800000';
+				quoteInfoButton.backgroundColor = '#c00000';
 			} else {
 				quoteInfoButton.backgroundColor = '#808080';
 			}
